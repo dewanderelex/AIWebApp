@@ -1,4 +1,0 @@
-- [This is created by Alex Nguyen]
-- [Gettysburg College]
-- [Class of 2022]
-- [Self Project]
