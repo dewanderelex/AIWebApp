@@ -1,0 +1,2 @@
+# Exclude venv from tracking
+/venv
