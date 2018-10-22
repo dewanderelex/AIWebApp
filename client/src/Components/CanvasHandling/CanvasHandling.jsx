@@ -3,13 +3,27 @@ import React from "react";
 import 'tachyons';
 import Axios from "axios";
 
-function toPixelIntensities(imageData) {
-  const pixelIntensities = Array(imageData.length / 4); //RGBA
+function rescaleImagePixels(pixelIntensities, toSize) {
+  const fromSize = parseInt(Math.sqrt(pixelIntensities.length));
+  const scale = fromSize / toSize;
 
-  for (let i=0; i < imageData.length; i=i+4) {
-    pixelIntensities[i/4] = imageData[i+3];
+  const rescaledPixelIntensities = Array(toSize**2);
+
+  for (let i=0; i < rescaledPixelIntensities.length; i++) {
+    let xStart = (i%toSize)*scale;
+    let xEnd = xStart + scale;
+    let yStart = parseInt(i/toSize) * scale;
+    let yEnd = yStart + scale;
+
+    let pixelSum = 0;
+    for (let x=xStart; x < xEnd; x++) {
+      for (let y=yStart; y < yEnd; y++) {
+        pixelSum += pixelIntensities[x + y*fromSize]
+      }
+    }
+    rescaledPixelIntensities[i] = pixelSum / (255.0 * scale**2);
   }
-  return pixelIntensities
+  return rescaledPixelIntensities;
 }
 
 class InputCanvas extends React.Component {
@@ -90,15 +104,39 @@ class InputCanvas extends React.Component {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  predict() {
-    Axios.post(
-      '/predict', JSON.stringify(toPixelIntensities(this.state.imageData))
-    ).then(function (response) {
-      console.log(response);
-    }).catch(function (error) {
-      console.log(error);
-    });
-  }
+  postData = (url = ``, data = {}) => {
+  // Default options are marked with *
+    return fetch(url, {
+        method: "POST", // *GET, POST, PUT, DELETE, etc.
+        mode: "cors", // no-cors, cors, *same-origin
+        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: "same-origin", // include, same-origin, *omit
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            // "Content-Type": "application/x-www-form-urlencoded",
+        },
+        redirect: "follow", // manual, *follow, error
+        referrer: "no-referrer", // no-referrer, *client
+        body: JSON.stringify(data), // body data type must match "Content-Type" header
+    })
+    .then(response => response.json()); // parses response to JSON
+}
+
+predict() {
+  console.log(this.state.imageData);
+  console.log(rescaleImagePixels(this.state.imageData, 28));
+  this.postData(`/predict`, rescaleImagePixels(this.state.imageData, 28))
+.then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
+.catch(error => console.error(error));
+}
+  //   Axios.post(
+  //       '/predict', JSON.stringify(toPixelIntensities(this.state.imageData))
+  //   ).then(function (response) {
+  //       console.log(response);
+  //   }).catch(function (error) {
+  //       console.log(error);
+  //   });
+  // }
 
   render() {
     return <div className="input-canvas-container" style = {{marginLeft: 200}}>
@@ -109,7 +147,7 @@ class InputCanvas extends React.Component {
             <canvas id="input-canvas"
                     className="input-canvas"
                     ref="inputCanvas"
-                    width={224} height={224}
+                    width={140} height={140}
                     onMouseDown={this.onMouseDown}
                     onMouseMove={this.onMouseMove}
                     onMouseOut={this.onMouseUp}
