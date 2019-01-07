@@ -1,4 +1,4 @@
-# Stock price prediction
+# Artificial Intelligence Web App
 ### By Alex Nguyen | Gettysburg College Class of 2022
 
 This is the website developed with Reactjs as front-end and python as back-end. This website predicts the number that user draw on the website's canvas. 
