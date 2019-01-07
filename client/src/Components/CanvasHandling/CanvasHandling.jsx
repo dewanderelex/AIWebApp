@@ -42,7 +42,7 @@ class InputCanvas extends React.Component {
     this.getCursorPosition = this.getCursorPosition.bind(this);
     this.drawLine = this.drawLine.bind(this);
     this.state = {
-      imageData: [],
+      imageData: new Array,
       currentPosition: null,
       drawing: false
     };
